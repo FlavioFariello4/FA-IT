@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import { invalidRequestOriginResponse, hasSameOrigin } from "@/lib/backend/http";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import type { StaffRole } from "@/lib/staff-access";
+import { isStaffRole, type StaffRole } from "@/lib/staff-access";
 
 type StaffApiContext = {
   adminClient: NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
+  userId: string;
+  userEmail: string;
+  roles: StaffRole[];
 };
 
 type StaffApiResult =
@@ -55,11 +58,12 @@ export async function getStaffApiContext(
   }
 
   const allowedRoleSet: ReadonlySet<string> = new Set(allowedRoles);
-  if (!(assignments ?? []).some(({ role }) => role === "admin" || allowedRoleSet.has(role))) {
+  const roles = (assignments ?? []).map(({ role }) => role).filter(isStaffRole);
+  if (!roles.some((role) => role === "admin" || allowedRoleSet.has(role))) {
     return {
       response: NextResponse.json({ message: "Non hai i permessi per questa operazione." }, { status: 403 }),
     };
   }
 
-  return { context: { adminClient } };
+  return { context: { adminClient, userId: user.id, userEmail: user.email ?? "", roles } };
 }

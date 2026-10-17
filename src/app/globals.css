@@ -1848,6 +1848,137 @@ summary:focus-visible {
   margin: 24px 0;
 }
 
+.inquiry-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(220px, 1fr) minmax(150px, 0.55fr) minmax(140px, 0.45fr);
+  align-items: end;
+  gap: 14px;
+  margin: 25px 0;
+}
+
+.inquiry-toolbar > p {
+  margin: 0 0 10px;
+  color: #50564d;
+  font-size: 11px;
+}
+
+.inquiry-search {
+  display: grid;
+  gap: 7px;
+  color: #62675e;
+  font-size: 10px;
+}
+
+.inquiry-search input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 13px;
+  border: 1px solid #c9cbc0;
+  border-radius: 4px;
+  background: #faf9f5;
+  color: var(--ink);
+  font: inherit;
+  font-size: 11px;
+}
+
+.inquiry-assignee {
+  color: #74786e;
+  font-size: 10px;
+}
+
+.inquiry-assignee strong {
+  color: #536520;
+  font-weight: 600;
+}
+
+.inquiry-reply-history {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+}
+
+.inquiry-reply-history > h3 {
+  margin: 0 0 10px;
+  color: #74786e;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.inquiry-reply {
+  margin-top: 9px;
+  padding: 13px 15px;
+  border-left: 2px solid #b7c57e;
+  background: #f0f0e9;
+}
+
+.inquiry-reply > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.inquiry-reply > div span {
+  color: #526321;
+  font-size: 10px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.inquiry-reply time {
+  flex: 0 0 auto;
+  color: #74786e;
+  font-size: 9px;
+}
+
+.inquiry-reply > p {
+  margin: 10px 0 0;
+  color: #50564d;
+  font-size: 11px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.inquiry-reply-composer {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.inquiry-reply-composer summary {
+  color: #536520;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  list-style-position: inside;
+}
+
+.inquiry-reply-composer form {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.inquiry-reply-composer textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  border: 1px solid #c9cbc0;
+  border-radius: 4px;
+  background: #fffefa;
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.inquiry-reply-composer .button {
+  justify-self: start;
+}
+
 .workflow-guide {
   padding: 15px 18px;
   border: 1px solid var(--line);
@@ -2966,6 +3097,15 @@ summary:focus-visible {
   .admin-user-grid,
   .admin-record-list {
     grid-template-columns: 1fr;
+  }
+
+  .inquiry-toolbar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .inquiry-toolbar > p {
+    margin-bottom: 0;
   }
 
   .admin-card-grid {

@@ -23,8 +23,9 @@ Il backend usa Supabase Auth, PostgreSQL e Storage privato. Per attivarlo:
 2. Applica `supabase/migrations/20261017000000_initial_schema.sql` al database.
    Applica poi `supabase/migrations/20261017140000_admin_workflows.sql` per aggiungere gli
    stati di candidature e richieste e `supabase/migrations/20261017160000_support_role.sql`
-   per abilitare il ruolo Supporto. Su un database già esistente, applica solo le migration
-   non ancora eseguite.
+   per abilitare il ruolo Supporto e `supabase/migrations/20261017170000_support_inbox.sql`
+   per la inbox, le assegnazioni e le risposte email. Su un database già esistente, applica
+   solo le migration non ancora eseguite.
 3. Copia `.env.example` in `.env.local` e inserisci URL e chiave anonima del progetto.
    La chiave `SUPABASE_SERVICE_ROLE_KEY` va mantenuta solo sul server: non anteporre
    `NEXT_PUBLIC_` e non inserirla mai nel browser o nel repository.
@@ -54,8 +55,8 @@ invito. Attiva MFA per gli account privilegiati e configura SMTP per gli inviti.
 - `admin`: gestione completa, richieste clienti, accessi e tutti i contenuti.
 - `portfolio_editor`: creazione e pubblicazione dei progetti.
 - `hr_manager`: gestione offerte e lettura delle candidature/CV.
-- `support`: sola lettura delle richieste dei clienti; non può cambiare lo stato o gestire
-  utenti, candidature e altri contenuti.
+- `support`: può consultare e cercare tutte le richieste, rispondere e aggiornare lo stato
+  solo delle richieste assegnate; non gestisce utenti, candidature o altri contenuti.
 
 Le verifiche sono applicate sia nell'interfaccia sia tramite Row Level Security in
 PostgreSQL. Puoi invitare persone e assegnare/revocare ruoli da **Area riservata → Persone**.
@@ -90,15 +91,22 @@ In **Area riservata** trovi le sezioni disponibili per il tuo ruolo:
 - **Offerte di lavoro:** crea e modifica gli annunci, pubblicali o lasciali in bozza.
 - **Candidature:** aggiorna la fase (nuova, in valutazione, colloquio, scartata, selezionata);
   l'eliminazione richiede conferma e rimuove sia la scheda sia il CV privato.
-- **Richieste clienti:** filtra per stato, rispondi via email e contrassegna come risposto o
-  archivia un messaggio.
+- **Richieste clienti:** assegnazione automatica a rotazione tra gli account con ruolo
+  `support`; ricerca per nome, email e testo, filtro “Assegnate a me”, storico delle risposte
+  e invio dal backend tramite Resend. Tutti i support possono vedere e cercare tutte le
+  richieste, ma possono rispondere e cambiarne lo stato solo se assegnate a loro; l'admin
+  può gestirle tutte.
 
-Gli stati delle candidature e delle richieste sono aggiunti dalla migration
-`20261017140000_admin_workflows.sql`. Dopo averla eseguita su Supabase, ricarica il sito.
-Le richieste dei clienti non hanno ancora una chat: una futura casella con conversazioni e
-risposte dal sito è normalmente chiamata **ticketing/help desk** o **inbox condivisa**; per
-una chat sincrona si parla di **live chat**. Conviene progettare prima il flusso (assegnatario,
-risposte, notifiche e conservazione) e poi scegliere o integrare il servizio.
+Gli stati di candidature e richieste richiedono la migration
+`20261017140000_admin_workflows.sql`; assegnazione round-robin e storico risposte richiedono
+`20261017170000_support_inbox.sql`. Applica le migration mancanti in Supabase prima di
+usare la inbox. Per inviare risposte configura `RESEND_API_KEY` come variabile server-only
+su Render e, facoltativamente, `SUPPORT_EMAIL_FROM` (predefinito:
+`FA IT Support <support@fa-it.it>`). Il dominio mittente deve essere verificato in Resend;
+la verifica del dominio su Sender.net non verifica automaticamente il dominio in Resend.
+L'invio usa `support@fa-it.it` come indirizzo Reply-To: per ricevere le risposte dei clienti
+serve anche una casella reale attiva per quell'indirizzo. Le risposte in ingresso a quella
+casella non vengono importate nella inbox del sito.
 
 ## SEO e pubblicazione
 
