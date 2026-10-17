@@ -10,12 +10,15 @@ export function hasSameOrigin(request: Request) {
   const forwardedProtocol = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
   const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
   const requestUrl = new URL(request.url);
-  const expectedOrigin = configuredOrigin
-    ? new URL(configuredOrigin).origin
-    : `${forwardedProtocol || requestUrl.protocol.slice(0, -1)}://${forwardedHost || request.headers.get("host") || requestUrl.host}`;
+  const requestHost = forwardedHost || request.headers.get("host") || requestUrl.host;
+  const requestProtocol = forwardedProtocol || requestUrl.protocol.slice(0, -1);
+  const expectedOrigins = new Set([`${requestProtocol}://${requestHost}`]);
 
   try {
-    return new URL(requestOrigin).origin === expectedOrigin;
+    if (configuredOrigin) {
+      expectedOrigins.add(new URL(configuredOrigin).origin);
+    }
+    return expectedOrigins.has(new URL(requestOrigin).origin);
   } catch (error) {
     if (error instanceof TypeError) {
       return false;
