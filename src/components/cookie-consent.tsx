@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 type Consent = "accepted" | "rejected" | null;
 
@@ -25,23 +25,25 @@ export function CookieConsent() {
   const consent = useSyncExternalStore(subscribeToConsent, getConsentSnapshot, () => null);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
 
+  useEffect(() => {
+    function handleOpenPreferences() {
+      window.localStorage.removeItem(storageKey);
+      window.dispatchEvent(new Event("fariello-cookie-consent"));
+      setPreferencesOpen(true);
+    }
+
+    window.addEventListener("fariello-open-cookie-preferences", handleOpenPreferences);
+    return () => window.removeEventListener("fariello-open-cookie-preferences", handleOpenPreferences);
+  }, []);
+
   function saveConsent(value: Exclude<Consent, null>) {
     window.localStorage.setItem(storageKey, value);
     window.dispatchEvent(new Event("fariello-cookie-consent"));
     setPreferencesOpen(false);
   }
 
-  function reopenPreferences() {
-    window.localStorage.removeItem(storageKey);
-    window.dispatchEvent(new Event("fariello-cookie-consent"));
-    setPreferencesOpen(true);
-  }
-
   return (
     <>
-      <button className="cookie-settings-link" onClick={reopenPreferences} type="button">
-        Preferenze cookie
-      </button>
       {consent === null && (
         <section
           aria-describedby="cookie-description"

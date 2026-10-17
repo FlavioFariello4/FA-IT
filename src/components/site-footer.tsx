@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { siteConfig } from "@/lib/site-config";
+import { CookiePreferencesButton } from "@/components/cookie-preferences-button";
 
 export function SiteFooter() {
   return (
@@ -21,7 +22,7 @@ export function SiteFooter() {
         <nav aria-label="Informazioni legali">
           <Link href="/privacy">Privacy e cookie</Link>
           <Link href="/lavora-con-noi">Lavora con noi</Link>
-          <span>Social in arrivo</span>
+          <CookiePreferencesButton />
         </nav>
       </div>
     </footer>

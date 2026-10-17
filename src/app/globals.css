@@ -888,6 +888,20 @@ summary:focus-visible {
   transition: color 180ms ease;
 }
 
+.cookie-preferences-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  transition: color 180ms ease;
+}
+
+.cookie-preferences-button:hover {
+  color: var(--paper);
+}
+
 .inner-page {
   min-height: 60vh;
 }
@@ -2077,20 +2091,6 @@ summary:focus-visible {
   line-height: 1.85;
 }
 
-.cookie-settings-link {
-  position: fixed;
-  z-index: 19;
-  right: 16px;
-  bottom: 14px;
-  padding: 9px 12px;
-  border: 1px solid #8b9085;
-  border-radius: 40px;
-  background: var(--paper);
-  color: var(--ink);
-  cursor: pointer;
-  font-size: 10px;
-}
-
 .cookie-panel {
   position: fixed;
   z-index: 20;
@@ -2839,11 +2839,6 @@ summary:focus-visible {
 
   .legal-content {
     padding-bottom: 80px;
-  }
-
-  .cookie-settings-link {
-    right: 10px;
-    bottom: 10px;
   }
 
   .cookie-panel {
