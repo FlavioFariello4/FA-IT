@@ -210,7 +210,8 @@ export function AdminInquiries({
       status?: string;
     };
     try {
-      setStatusMessage(result.message ?? "Non è stato possibile inviare la risposta.");
+      setStatusMessage(result.message
+        ?? `Il server ha risposto senza dettagli (HTTP ${response.status}). Controlla i log del servizio su Render.`);
       if (result.status === "provider_rejected") {
         replyAttempts.current.delete(inquiry.id);
       }
