@@ -1,15 +1,9 @@
 import { NextResponse } from "next/server";
 import { getAdminApiContext } from "@/lib/backend/admin-api";
 import { isValidEmail, readJsonObject } from "@/lib/backend/http";
-import type { StaffRole } from "@/lib/staff-access";
+import { isStaffRole } from "@/lib/staff-access";
 
 export const runtime = "nodejs";
-
-const roles = ["admin", "portfolio_editor", "hr_manager"] as const;
-
-function isStaffRole(value: unknown): value is StaffRole {
-  return roles.some((role) => role === value);
-}
 
 export async function GET(request: Request) {
   const result = await getAdminApiContext(request);
@@ -62,7 +56,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Dati non validi." }, { status: 400 });
   }
   const email = typeof payload.email === "string" ? payload.email.trim().toLowerCase() : "";
-  if (!isValidEmail(email) || !isStaffRole(payload.role)) {
+  if (!isValidEmail(email) || typeof payload.role !== "string" || !isStaffRole(payload.role)) {
     return NextResponse.json({ message: "Inserisci un’email valida e un ruolo." }, { status: 400 });
   }
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
@@ -116,6 +110,7 @@ export async function PATCH(request: Request) {
   if (
     typeof payload.userId !== "string" ||
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(payload.userId) ||
+    typeof payload.role !== "string" ||
     !isStaffRole(payload.role) ||
     typeof payload.enabled !== "boolean"
   ) {

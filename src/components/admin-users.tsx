@@ -2,13 +2,14 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 
-type StaffRole = "admin" | "portfolio_editor" | "hr_manager";
+type StaffRole = "admin" | "portfolio_editor" | "hr_manager" | "support";
 type StaffUser = { id: string; email: string; roles: StaffRole[] };
 
 const roles: { value: StaffRole; label: string }[] = [
   { value: "admin", label: "Admin · accesso completo" },
   { value: "portfolio_editor", label: "Portfolio · pubblicazione progetti" },
   { value: "hr_manager", label: "HR · offerte e candidature" },
+  { value: "support", label: "Supporto · sola lettura richieste clienti" },
 ];
 
 export function AdminUsers() {

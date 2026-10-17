@@ -21,9 +21,10 @@ Il backend usa Supabase Auth, PostgreSQL e Storage privato. Per attivarlo:
 1. Crea un progetto Supabase e configura l'autenticazione email/password e l'invio delle
    email di invito con SMTP.
 2. Applica `supabase/migrations/20261017000000_initial_schema.sql` al database.
-   Se il database è già stato creato con la prima migration, applica anche
-   `supabase/migrations/20261017140000_admin_workflows.sql` per aggiungere gli stati di
-   candidature e richieste necessari al pannello operativo.
+   Applica poi `supabase/migrations/20261017140000_admin_workflows.sql` per aggiungere gli
+   stati di candidature e richieste e `supabase/migrations/20261017160000_support_role.sql`
+   per abilitare il ruolo Supporto. Su un database già esistente, applica solo le migration
+   non ancora eseguite.
 3. Copia `.env.example` in `.env.local` e inserisci URL e chiave anonima del progetto.
    La chiave `SUPABASE_SERVICE_ROLE_KEY` va mantenuta solo sul server: non anteporre
    `NEXT_PUBLIC_` e non inserirla mai nel browser o nel repository.
@@ -53,6 +54,8 @@ invito. Attiva MFA per gli account privilegiati e configura SMTP per gli inviti.
 - `admin`: gestione completa, richieste clienti, accessi e tutti i contenuti.
 - `portfolio_editor`: creazione e pubblicazione dei progetti.
 - `hr_manager`: gestione offerte e lettura delle candidature/CV.
+- `support`: sola lettura delle richieste dei clienti; non può cambiare lo stato o gestire
+  utenti, candidature e altri contenuti.
 
 Le verifiche sono applicate sia nell'interfaccia sia tramite Row Level Security in
 PostgreSQL. Puoi invitare persone e assegnare/revocare ruoli da **Area riservata → Persone**.

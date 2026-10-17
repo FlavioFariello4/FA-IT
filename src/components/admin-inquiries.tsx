@@ -21,7 +21,13 @@ const statuses: { value: InquiryStatus; label: string }[] = [
   { value: "archived", label: "Archiviato" },
 ];
 
-export function AdminInquiries({ initialInquiries }: { initialInquiries: Inquiry[] }) {
+export function AdminInquiries({
+  initialInquiries,
+  canUpdateStatus,
+}: {
+  initialInquiries: Inquiry[];
+  canUpdateStatus: boolean;
+}) {
   const [inquiries, setInquiries] = useState(initialInquiries);
   const [filter, setFilter] = useState<InquiryStatus | "all">("all");
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -82,36 +88,45 @@ export function AdminInquiries({ initialInquiries }: { initialInquiries: Inquiry
                     {inquiry.company ? ` · ${inquiry.company}` : ""}
                   </p>
                   <h2>{inquiry.name}</h2>
-                  <a href={`mailto:${inquiry.email}`}>{inquiry.email}</a>
+                  <p>{inquiry.email}</p>
                 </div>
-                <label className="workflow-status">
-                  <span>Stato richiesta</span>
-                  <select
-                    aria-label={`Stato della richiesta di ${inquiry.name}`}
-                    disabled={busyId === inquiry.id}
-                    onChange={(event) => void updateStatus(inquiry, event.target.value as InquiryStatus)}
-                    value={inquiry.status}
-                  >
-                    {statuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}
-                  </select>
-                </label>
-              </div>
-              <p className="workflow-message">{inquiry.message}</p>
-              <div className="workflow-actions">
-                <a className="button button-dark" href={`mailto:${inquiry.email}?subject=${encodeURIComponent("Re: la tua richiesta a FA IT")}`}>
-                  Rispondi via email ↗
-                </a>
-                {inquiry.status !== "replied" && (
-                  <button
-                    className="text-button"
-                    disabled={busyId === inquiry.id}
-                    onClick={() => void updateStatus(inquiry, "replied")}
-                    type="button"
-                  >
-                    Segna come risposto
-                  </button>
+                {canUpdateStatus ? (
+                  <label className="workflow-status">
+                    <span>Stato richiesta</span>
+                    <select
+                      aria-label={`Stato della richiesta di ${inquiry.name}`}
+                      disabled={busyId === inquiry.id}
+                      onChange={(event) => void updateStatus(inquiry, event.target.value as InquiryStatus)}
+                      value={inquiry.status}
+                    >
+                      {statuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}
+                    </select>
+                  </label>
+                ) : (
+                  <div className="workflow-status">
+                    <span>Stato richiesta</span>
+                    <span className="workflow-badge">{statuses.find((status) => status.value === inquiry.status)?.label}</span>
+                  </div>
                 )}
               </div>
+              <p className="workflow-message">{inquiry.message}</p>
+              {canUpdateStatus && (
+                <div className="workflow-actions">
+                  <a className="button button-dark" href={`mailto:${inquiry.email}?subject=${encodeURIComponent("Re: la tua richiesta a FA IT")}`}>
+                    Rispondi via email ↗
+                  </a>
+                  {inquiry.status !== "replied" && (
+                    <button
+                      className="text-button"
+                      disabled={busyId === inquiry.id}
+                      onClick={() => void updateStatus(inquiry, "replied")}
+                      type="button"
+                    >
+                      Segna come risposto
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </article>
         ))}

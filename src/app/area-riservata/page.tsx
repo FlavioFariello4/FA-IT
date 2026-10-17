@@ -69,6 +69,7 @@ export default async function AdminHomePage() {
   const canManagePortfolio = roles.has("admin") || roles.has("portfolio_editor");
   const canManageHr = roles.has("admin") || roles.has("hr_manager");
   const isAdmin = roles.has("admin");
+  const canViewInquiries = isAdmin || roles.has("support");
 
   return (
     <section className="section-wrap admin-page">
@@ -102,13 +103,15 @@ export default async function AdminHomePage() {
             </Link>
           </>
         )}
+        {canViewInquiries && (
+          <Link className="admin-card" href="/area-riservata/richieste">
+            <span className="admin-card-icon" aria-hidden="true">04</span>
+            <div className="admin-card-copy"><span>CLIENTI</span><h2>Richieste</h2><p>{isAdmin ? "Messaggi e follow-up." : "Consulta le richieste dei clienti."}</p></div>
+            <b aria-hidden="true">↗</b>
+          </Link>
+        )}
         {isAdmin && (
           <>
-            <Link className="admin-card" href="/area-riservata/richieste">
-              <span className="admin-card-icon" aria-hidden="true">04</span>
-              <div className="admin-card-copy"><span>CLIENTI</span><h2>Richieste</h2><p>Messaggi e follow-up.</p></div>
-              <b aria-hidden="true">↗</b>
-            </Link>
             <Link className="admin-card" href="/area-riservata/utenti">
               <span className="admin-card-icon" aria-hidden="true">05</span>
               <div className="admin-card-copy"><span>IMPOSTAZIONI</span><h2>Team e accessi</h2><p>Inviti e permessi.</p></div>
