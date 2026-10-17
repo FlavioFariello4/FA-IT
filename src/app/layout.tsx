@@ -3,9 +3,7 @@ import "./globals.css";
 import { CookieConsent } from "@/components/cookie-consent";
 import { IntroLoader } from "@/components/intro-loader";
 import { MotionEnhancements } from "@/components/motion-enhancements";
-import { MobileMenu } from "@/components/mobile-menu";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader, DesktopNavigation } from "@/components/site-header";
+import { SiteChrome } from "@/components/site-chrome";
 import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -60,12 +58,8 @@ export default function RootLayout({
         <a className="skip-link" href="#contenuto">
           Salta al contenuto
         </a>
-        <SiteHeader>
-          <DesktopNavigation />
-          <MobileMenu />
-        </SiteHeader>
+        <SiteChrome />
         <main id="contenuto">{children}</main>
-        <SiteFooter />
         <CookieConsent />
         <IntroLoader />
         <MotionEnhancements />
