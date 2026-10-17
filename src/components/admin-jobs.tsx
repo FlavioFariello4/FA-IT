@@ -17,8 +17,9 @@ export function AdminJobs() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  async function refreshJobs() {
+  async function refreshJobs(successMessage = "") {
     const supabase = createSupabaseBrowserClient();
     if (!supabase) {
       setStatus("Configura Supabase per gestire le offerte.");
@@ -35,13 +36,13 @@ export function AdminJobs() {
       setStatus("Non è stato possibile caricare le offerte.");
     } else {
       setJobs(data ?? []);
-      setStatus("");
+      setStatus(successMessage);
     }
     setLoading(false);
   }
 
   useEffect(() => {
-    void Promise.resolve().then(refreshJobs);
+    void Promise.resolve().then(() => refreshJobs());
   }, []);
 
   async function createJob(event: FormEvent<HTMLFormElement>) {
@@ -68,8 +69,7 @@ export function AdminJobs() {
       return;
     }
     form.reset();
-    setStatus("Offerta salvata.");
-    await refreshJobs();
+    await refreshJobs("Offerta salvata.");
   }
 
   async function updateJob(job: Job, changes: Partial<Pick<Job, "published">>) {
@@ -84,10 +84,41 @@ export function AdminJobs() {
       setStatus("Non è stato possibile aggiornare l’offerta.");
       return;
     }
-    await refreshJobs();
+    await refreshJobs("Stato di pubblicazione aggiornato.");
+  }
+
+  async function saveJob(event: FormEvent<HTMLFormElement>, job: Job) {
+    event.preventDefault();
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) {
+      setStatus("Configura Supabase prima di modificare le offerte.");
+      return;
+    }
+    const formData = new FormData(event.currentTarget);
+    const { error } = await supabase
+      .from("job_postings")
+      .update({
+        title: String(formData.get("title") ?? "").trim(),
+        slug: String(formData.get("slug") ?? "").trim(),
+        summary: String(formData.get("summary") ?? "").trim(),
+        location: String(formData.get("location") ?? "").trim(),
+        employment_type: String(formData.get("employmentType") ?? "").trim(),
+      })
+      .eq("id", job.id);
+    if (error) {
+      console.error("Unable to edit job posting:", error.message);
+      setStatus("Modifiche non salvate. Verifica i campi e che lo slug non sia già utilizzato.");
+      return;
+    }
+    setEditingId(null);
+    await refreshJobs("Offerta aggiornata.");
   }
 
   async function deleteJob(id: string) {
+    const job = jobs.find((item) => item.id === id);
+    if (!job || !window.confirm(`Eliminare definitivamente l’offerta “${job.title}”?`)) {
+      return;
+    }
     const supabase = createSupabaseBrowserClient();
     if (!supabase) {
       setStatus("Configura Supabase prima di modificare le offerte.");
@@ -99,7 +130,7 @@ export function AdminJobs() {
       setStatus("Non è stato possibile eliminare l’offerta.");
       return;
     }
-    await refreshJobs();
+    await refreshJobs("Offerta eliminata.");
   }
 
   return (
@@ -117,18 +148,45 @@ export function AdminJobs() {
         <button className="button button-dark" type="submit">Salva offerta ↗</button>
       </form>
       <div className="admin-record-list">
-        <h2>Offerte salvate</h2>
+        <h2>Offerte · {jobs.length}</h2>
+        <p className="admin-list-help">Gestisci le posizioni: le offerte pubblicate sono visibili nella pagina Lavora con noi.</p>
         {loading && <p>Caricamento…</p>}
         {!loading && jobs.length === 0 && <p>Nessuna offerta inserita.</p>}
         {jobs.map((job) => (
-          <article className="admin-record" key={job.id}>
-            <div><span>{job.location} · {job.published ? "Pubblicata" : "Bozza"}</span><h3>{job.title}</h3><p>{job.employment_type}</p></div>
-            <div className="admin-record-actions">
-              <button className="text-button" onClick={() => void updateJob(job, { published: !job.published })} type="button">
-                {job.published ? "Nascondi" : "Pubblica"}
-              </button>
-              <button className="text-button" onClick={() => void deleteJob(job.id)} type="button">Elimina</button>
-            </div>
+          <article className="admin-record project-admin-record" key={job.id}>
+            {editingId === job.id ? (
+              <form className="project-edit-form" onSubmit={(event) => void saveJob(event, job)}>
+                <label>Titolo<input defaultValue={job.title} maxLength={140} name="title" required /></label>
+                <label>Slug URL<input defaultValue={job.slug} maxLength={140} name="slug" pattern="[a-z0-9]+(-[a-z0-9]+)*" required /></label>
+                <label>Descrizione breve<textarea defaultValue={job.summary} maxLength={500} minLength={10} name="summary" required rows={3} /></label>
+                <div className="form-grid">
+                  <label>Sede<input defaultValue={job.location} maxLength={120} name="location" required /></label>
+                  <label>Tipo<input defaultValue={job.employment_type} maxLength={100} name="employmentType" required /></label>
+                </div>
+                <div className="admin-record-actions">
+                  <button className="button button-dark" type="submit">Salva modifiche</button>
+                  <button className="text-button" onClick={() => setEditingId(null)} type="button">Annulla</button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <div className="workflow-card-main">
+                  <span className={`workflow-badge${job.published ? " is-success" : ""}`}>
+                    {job.published ? "Pubblicata" : "Bozza · non visibile"}
+                  </span>
+                  <h3>{job.title}</h3>
+                  <p>{job.location} · {job.employment_type}</p>
+                  <p>{job.summary}</p>
+                </div>
+                <div className="admin-record-actions project-actions">
+                  <button className="text-button" onClick={() => setEditingId(job.id)} type="button">Modifica</button>
+                  <button className="text-button" onClick={() => void updateJob(job, { published: !job.published })} type="button">
+                    {job.published ? "Nascondi" : "Pubblica"}
+                  </button>
+                  <button className="text-button workflow-danger" onClick={() => void deleteJob(job.id)} type="button">Elimina</button>
+                </div>
+              </>
+            )}
           </article>
         ))}
       </div>

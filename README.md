@@ -21,6 +21,9 @@ Il backend usa Supabase Auth, PostgreSQL e Storage privato. Per attivarlo:
 1. Crea un progetto Supabase e configura l'autenticazione email/password e l'invio delle
    email di invito con SMTP.
 2. Applica `supabase/migrations/20261017000000_initial_schema.sql` al database.
+   Se il database è già stato creato con la prima migration, applica anche
+   `supabase/migrations/20261017140000_admin_workflows.sql` per aggiungere gli stati di
+   candidature e richieste necessari al pannello operativo.
 3. Copia `.env.example` in `.env.local` e inserisci URL e chiave anonima del progetto.
    La chiave `SUPABASE_SERVICE_ROLE_KEY` va mantenuta solo sul server: non anteporre
    `NEXT_PUBLIC_` e non inserirla mai nel browser o nel repository.
@@ -62,6 +65,37 @@ controlla sessione e ruoli, poi interagisce con PostgreSQL e lo Storage privato 
 Supabase. La service-role key resta solo sul server e non deve mai essere esposta al browser.
 Render (o il futuro container Docker) ospita l'applicazione; Supabase resta il servizio
 separato per autenticazione, database e CV.
+
+### Organizzazione del backend nel codice
+
+- `src/lib/supabase-*.ts` crea client distinti per browser, pagine server, API privilegiate
+  e letture pubbliche; la chiave service-role è confinata al client admin server-side.
+- `src/lib/backend/http.ts` centralizza i controlli HTTP e la validazione condivisa delle
+  API; `admin-api.ts` protegge le operazioni amministrative e verifica sessione e ruolo.
+- `src/lib/staff-access.ts` controlla i ruoli per le pagine riservate.
+- `src/app/api/` contiene gli endpoint: i moduli pubblici validano e salvano richieste/CV,
+  mentre `/api/admin/users` gestisce inviti e ruoli.
+- `supabase/migrations/` contiene schema, permessi RLS e policy Storage; le autorizzazioni
+  del database rimangono la protezione effettiva anche quando l'interfaccia non mostra una
+  funzione.
+
+### Gestione dal pannello
+
+In **Area riservata** trovi le sezioni disponibili per il tuo ruolo:
+
+- **Portfolio:** crea, modifica, pubblica, nascondi o elimina progetti.
+- **Offerte di lavoro:** crea e modifica gli annunci, pubblicali o lasciali in bozza.
+- **Candidature:** aggiorna la fase (nuova, in valutazione, colloquio, scartata, selezionata);
+  l'eliminazione richiede conferma e rimuove sia la scheda sia il CV privato.
+- **Richieste clienti:** filtra per stato, rispondi via email e contrassegna come risposto o
+  archivia un messaggio.
+
+Gli stati delle candidature e delle richieste sono aggiunti dalla migration
+`20261017140000_admin_workflows.sql`. Dopo averla eseguita su Supabase, ricarica il sito.
+Le richieste dei clienti non hanno ancora una chat: una futura casella con conversazioni e
+risposte dal sito è normalmente chiamata **ticketing/help desk** o **inbox condivisa**; per
+una chat sincrona si parla di **live chat**. Conviene progettare prima il flusso (assegnatario,
+risposte, notifiche e conservazione) e poi scegliere o integrare il servizio.
 
 ## SEO e pubblicazione
 

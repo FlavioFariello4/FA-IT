@@ -1,25 +1,22 @@
 import { NextResponse } from "next/server";
+import {
+  hasSameOrigin,
+  isValidEmail,
+  publicFormsDisabledResponse,
+  readFormText,
+} from "@/lib/backend/http";
 import { parseMultipartForm } from "@/lib/limited-form-data";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 const maxRequestBytes = 20 * 1024;
 
-function readText(formData: FormData, key: string, maxLength: number) {
-  const value = formData.get(key);
-  return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
-}
-
 export async function POST(request: Request) {
-  const expectedOrigin = new URL(request.url).origin;
-  if (request.headers.get("origin") !== expectedOrigin) {
+  if (!hasSameOrigin(request)) {
     return NextResponse.json({ message: "Richiesta non valida." }, { status: 403 });
   }
   if (process.env.PUBLIC_FORMS_ENABLED !== "true") {
-    return NextResponse.json(
-      { message: "Il modulo non è ancora attivo. Riprova più avanti." },
-      { status: 503 },
-    );
+    return publicFormsDisabledResponse();
   }
 
   const parsedForm = await parseMultipartForm(request, maxRequestBytes);
@@ -30,19 +27,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Formato della richiesta non valido." }, { status: 415 });
   }
   const formData = parsedForm.formData;
-  if (readText(formData, "website", 200)) {
+  if (readFormText(formData, "website", 200)) {
     return NextResponse.json({ message: "Controlla i campi e riprova." }, { status: 400 });
   }
 
-  const name = readText(formData, "name", 120);
-  const email = readText(formData, "email", 254);
-  const company = readText(formData, "company", 160);
-  const message = readText(formData, "message", 5000);
+  const name = readFormText(formData, "name", 120);
+  const email = readFormText(formData, "email", 254);
+  const company = readFormText(formData, "company", 160);
+  const message = readFormText(formData, "message", 5000);
   const privacyConsent = formData.get("privacyConsent") === "on";
 
   if (
     !name ||
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+    !isValidEmail(email) ||
     message.length < 10 ||
     !privacyConsent
   ) {

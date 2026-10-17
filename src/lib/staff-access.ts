@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
-export async function requireStaffRole(allowedRoles: readonly string[]) {
+export type StaffRole = "admin" | "portfolio_editor" | "hr_manager";
+
+export async function requireStaffRole(allowedRoles: readonly StaffRole[]) {
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
     return null;

@@ -17,8 +17,9 @@ export function AdminProjects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  async function refreshProjects() {
+  async function refreshProjects(successMessage = "") {
     const supabase = createSupabaseBrowserClient();
     if (!supabase) {
       setStatus("Configura Supabase per gestire i progetti.");
@@ -36,13 +37,13 @@ export function AdminProjects() {
       setStatus("Non è stato possibile caricare i progetti.");
     } else {
       setProjects(data ?? []);
-      setStatus("");
+      setStatus(successMessage);
     }
     setLoading(false);
   }
 
   useEffect(() => {
-    void Promise.resolve().then(refreshProjects);
+    void Promise.resolve().then(() => refreshProjects());
   }, []);
 
   async function createProject(event: FormEvent<HTMLFormElement>) {
@@ -70,8 +71,35 @@ export function AdminProjects() {
       return;
     }
     form.reset();
-    setStatus("Progetto salvato.");
-    await refreshProjects();
+    await refreshProjects("Progetto salvato.");
+  }
+
+  async function updateProject(event: FormEvent<HTMLFormElement>, project: Project) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) {
+      setStatus("Configura Supabase prima di modificare i progetti.");
+      return;
+    }
+    const formData = new FormData(form);
+    const { error } = await supabase
+      .from("portfolio_projects")
+      .update({
+        title: String(formData.get("title") ?? "").trim(),
+        slug: String(formData.get("slug") ?? "").trim(),
+        category: String(formData.get("category") ?? "").trim(),
+        description: String(formData.get("description") ?? "").trim(),
+        project_url: String(formData.get("projectUrl") ?? "").trim(),
+      })
+      .eq("id", project.id);
+    if (error) {
+      console.error("Unable to update portfolio project:", error.message);
+      setStatus("Modifiche non salvate. Verifica i campi e che lo slug non sia già utilizzato.");
+      return;
+    }
+    setEditingId(null);
+    await refreshProjects("Progetto aggiornato.");
   }
 
   async function setPublished(project: Project) {
@@ -91,10 +119,14 @@ export function AdminProjects() {
       setStatus("Non è stato possibile aggiornare la pubblicazione.");
       return;
     }
-    await refreshProjects();
+    await refreshProjects(project.published ? "Progetto nascosto dal sito." : "Progetto pubblicato sul sito.");
   }
 
   async function deleteProject(id: string) {
+    const project = projects.find((item) => item.id === id);
+    if (!project || !window.confirm(`Eliminare definitivamente il progetto “${project.title}”?`)) {
+      return;
+    }
     const supabase = createSupabaseBrowserClient();
     if (!supabase) {
       setStatus("Configura Supabase prima di modificare i progetti.");
@@ -107,7 +139,7 @@ export function AdminProjects() {
       setStatus("Non è stato possibile eliminare il progetto.");
       return;
     }
-    await refreshProjects();
+    await refreshProjects("Progetto eliminato.");
   }
 
   return (
@@ -123,18 +155,43 @@ export function AdminProjects() {
         <button className="button button-dark" type="submit">Salva progetto ↗</button>
       </form>
       <div className="admin-record-list">
-        <h2>Progetti salvati</h2>
+        <h2>Portfolio · {projects.length}</h2>
+        <p className="admin-list-help">Modifica i dettagli, pubblica il progetto o lascialo come bozza.</p>
         {loading && <p>Caricamento…</p>}
         {!loading && projects.length === 0 && <p>Nessun progetto inserito.</p>}
         {projects.map((project) => (
-          <article className="admin-record" key={project.id}>
-            <div><span>{project.category} · {project.published ? "Pubblicato" : "Bozza"}</span><h3>{project.title}</h3><p>{project.slug}</p></div>
-            <div className="admin-record-actions">
-              <button className="text-button" onClick={() => void setPublished(project)} type="button">
-                {project.published ? "Nascondi" : "Pubblica"}
-              </button>
-              <button className="text-button" onClick={() => void deleteProject(project.id)} type="button">Elimina</button>
-            </div>
+          <article className="admin-record project-admin-record" key={project.id}>
+            {editingId === project.id ? (
+              <form className="project-edit-form" onSubmit={(event) => void updateProject(event, project)}>
+                <label>Titolo<input defaultValue={project.title} maxLength={140} name="title" required /></label>
+                <label>Slug URL<input defaultValue={project.slug} maxLength={140} name="slug" pattern="[a-z0-9]+(-[a-z0-9]+)*" required /></label>
+                <label>Categoria<input defaultValue={project.category} maxLength={80} name="category" required /></label>
+                <label>Descrizione<textarea defaultValue={project.description} maxLength={3000} minLength={10} name="description" required rows={4} /></label>
+                <label>Link al progetto<input defaultValue={project.project_url} name="projectUrl" pattern="https://.+" required type="url" /></label>
+                <div className="admin-record-actions">
+                  <button className="button button-dark" type="submit">Salva modifiche</button>
+                  <button className="text-button" onClick={() => setEditingId(null)} type="button">Annulla</button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <div className="workflow-card-main">
+                  <span className={`workflow-badge${project.published ? " is-success" : ""}`}>
+                    {project.published ? "Visibile sul sito" : "Bozza · non visibile"}
+                  </span>
+                  <h3>{project.title}</h3>
+                  <p>{project.category} · /{project.slug}</p>
+                  <p>{project.description}</p>
+                </div>
+                <div className="admin-record-actions project-actions">
+                  <button className="text-button" onClick={() => setEditingId(project.id)} type="button">Modifica</button>
+                  <button className="text-button" onClick={() => void setPublished(project)} type="button">
+                    {project.published ? "Nascondi" : "Pubblica"}
+                  </button>
+                  <button className="text-button workflow-danger" onClick={() => void deleteProject(project.id)} type="button">Elimina</button>
+                </div>
+              </>
+            )}
           </article>
         ))}
       </div>

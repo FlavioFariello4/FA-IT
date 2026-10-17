@@ -76,33 +76,33 @@ export default async function AdminHomePage() {
         <div>
           <p className="eyebrow">Area riservata · accesso verificato</p>
           <h1>Ciao, <span className="serif-accent">{user.email?.split("@")[0] ?? "team"}.</span></h1>
-          <p className="inner-lede">Gestisci i contenuti in base ai permessi assegnati al tuo account.</p>
+          <p className="inner-lede">Scegli un’area qui sotto. Ogni sezione mostra solo gli strumenti consentiti al tuo ruolo.</p>
         </div>
         <SignOutButton />
       </div>
       <div className="admin-card-grid">
         {canManagePortfolio && (
           <Link className="admin-card" href="/area-riservata/progetti">
-            <span>01 · Portfolio</span><h2>Progetti</h2><p>Crea e pubblica le storie del portfolio.</p><b>Apri ↗</b>
+            <span>01 · Portfolio</span>            <h2>Progetti</h2><p>Aggiungi lavori, modifica i dettagli, pubblica, nascondi o elimina un progetto.</p><b>Gestisci progetti ↗</b>
           </Link>
         )}
         {canManageHr && (
           <>
             <Link className="admin-card" href="/area-riservata/posizioni">
-              <span>02 · Selezione</span><h2>Offerte</h2><p>Pubblica e aggiorna le posizioni aperte.</p><b>Apri ↗</b>
+              <span>02 · Selezione</span>              <h2>Offerte di lavoro</h2><p>Crea e aggiorna annunci, pubblicali o lasciali in bozza.</p><b>Gestisci offerte ↗</b>
             </Link>
             <Link className="admin-card" href="/area-riservata/candidature">
-              <span>03 · Selezione</span><h2>Candidature</h2><p>Consulta i dati e i CV in modo riservato.</p><b>Apri ↗</b>
+              <span>03 · Selezione</span>              <h2>Candidature</h2><p>Consulta i CV e segui ogni persona: nuova, valutazione, colloquio, selezionata o scartata.</p><b>Apri selezione ↗</b>
             </Link>
           </>
         )}
         {isAdmin && (
           <>
             <Link className="admin-card" href="/area-riservata/richieste">
-              <span>04 · Clienti</span><h2>Richieste</h2><p>Leggi i messaggi ricevuti dal modulo contatti.</p><b>Apri ↗</b>
+              <span>04 · Clienti</span>              <h2>Richieste clienti</h2><p>Leggi i messaggi, rispondi via email e segna le richieste già gestite.</p><b>Apri richieste ↗</b>
             </Link>
             <Link className="admin-card" href="/area-riservata/utenti">
-              <span>05 · Accessi</span><h2>Persone</h2><p>Invita collaboratori e assegna ruoli dedicati.</p><b>Apri ↗</b>
+              <span>05 · Accessi</span>              <h2>Team e permessi</h2><p>Invita collaboratori e scegli cosa può gestire ciascuno.</p><b>Gestisci accessi ↗</b>
             </Link>
           </>
         )}
