@@ -10,6 +10,14 @@ const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const maxReplyLength = 10000;
 const supportEmail = "support@fa-it.it";
+const defaultReplyDomain = "inbound.fa-it.it";
+
+function getReplyDomain() {
+  const domain = (process.env.SUPPORT_EMAIL_REPLY_DOMAIN || defaultReplyDomain).trim().toLowerCase();
+  return /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(domain)
+    ? domain
+    : null;
+}
 
 async function markDeliveryFailed(
   adminClient: AdminClient,
@@ -76,7 +84,7 @@ export async function POST(
 
   const { data: inquiry, error: inquiryError } = await result.context.adminClient
     .from("contact_inquiries")
-    .select("id,name,email,assigned_to")
+    .select("id,name,email,assigned_to,reply_token")
     .eq("id", id)
     .maybeSingle();
   if (inquiryError) {
@@ -95,10 +103,43 @@ export async function POST(
     );
   }
 
+  const replyDomain = getReplyDomain();
+  if (!replyDomain) {
+    console.error("SUPPORT_EMAIL_REPLY_DOMAIN has an invalid value.");
+    return NextResponse.json(
+      { message: "Il dominio per ricevere le risposte non è configurato correttamente." },
+      { status: 503 },
+    );
+  }
+
+  const { data: latestInbound, error: threadError } = await result.context.adminClient
+    .from("contact_inquiry_replies")
+    .select("email_message_id,email_subject")
+    .eq("inquiry_id", inquiry.id)
+    .eq("direction", "inbound")
+    .not("email_message_id", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (threadError) {
+    console.error("Unable to load support email thread headers:", threadError.message);
+    return NextResponse.json({ message: "Non è stato possibile preparare la conversazione." }, { status: 500 });
+  }
+
+  const previousSubject = latestInbound?.email_subject?.trim();
+  const subject = previousSubject
+    ? (/^re:\s*/i.test(previousSubject) ? previousSubject : `Re: ${previousSubject}`)
+    : "Re: la tua richiesta a FA IT";
+  const emailHeaders: Record<string, string> = {};
+  if (latestInbound?.email_message_id) {
+    emailHeaders["In-Reply-To"] = latestInbound.email_message_id;
+  }
+
   const { data: existingReply, error: existingReplyError } = await result.context.adminClient
     .from("contact_inquiry_replies")
-    .select("id,inquiry_id,sender_email,body,delivery_status,created_at,sent_at")
+    .select("id,inquiry_id,sender_email,body,direction,delivery_status,created_at,sent_at,email_subject")
     .eq("request_id", requestId)
+    .eq("direction", "outbound")
     .maybeSingle();
   if (existingReplyError) {
     console.error("Unable to check support reply idempotency:", existingReplyError.message);
@@ -133,7 +174,7 @@ export async function POST(
   const replyQuery = existingReply
     ? result.context.adminClient
       .from("contact_inquiry_replies")
-      .update({ delivery_status: "pending" })
+      .update({ delivery_status: "pending", email_subject: subject })
       .eq("id", existingReply.id)
     : result.context.adminClient
       .from("contact_inquiry_replies")
@@ -143,10 +184,12 @@ export async function POST(
         sender_id: result.context.userId,
         sender_email: result.context.userEmail,
         body,
+        direction: "outbound",
         delivery_status: "pending",
+        email_subject: subject,
       });
   const { data: reply, error: replyError } = await replyQuery
-    .select("id,inquiry_id,sender_email,body,delivery_status,created_at,sent_at")
+    .select("id,inquiry_id,sender_email,body,direction,delivery_status,created_at,sent_at,email_subject")
     .single();
   if (replyError) {
     console.error("Unable to save support reply:", replyError.message);
@@ -171,8 +214,9 @@ export async function POST(
       body: JSON.stringify({
         from,
         to: [inquiry.email],
-        reply_to: supportEmail,
-        subject: "Re: la tua richiesta a FA IT",
+        reply_to: `support+${inquiry.reply_token}@${replyDomain}`,
+        subject,
+        headers: emailHeaders,
         text: `${body}\n\n—\nFA IT Support\n${supportEmail}`,
       }),
       signal: AbortSignal.timeout(15000),
@@ -227,7 +271,7 @@ export async function POST(
       sent_at: sentAt,
     })
     .eq("id", replyId)
-    .select("id,inquiry_id,sender_email,body,delivery_status,created_at,sent_at")
+    .select("id,inquiry_id,sender_email,body,direction,delivery_status,created_at,sent_at,email_subject")
     .single();
   if (updateReplyError) {
     console.error("Email sent but reply history could not be updated:", updateReplyError.message);
@@ -252,4 +296,62 @@ export async function POST(
     reply: sentReply,
     status: statusError ? "sent_status_update_failed" : "sent",
   }, { status: 201 });
+}
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const result = await getStaffApiContext(request, ["support"], { allowMissingOrigin: true });
+  if ("response" in result) {
+    return result.response;
+  }
+
+  const { id } = await params;
+  if (!uuidPattern.test(id)) {
+    return NextResponse.json({ message: "Richiesta non valida." }, { status: 400 });
+  }
+
+  const { data: inquiry, error: inquiryError } = await result.context.adminClient
+    .from("contact_inquiries")
+    .select("id,status")
+    .eq("id", id)
+    .maybeSingle();
+  if (inquiryError) {
+    console.error("Unable to verify inquiry before loading its conversation:", inquiryError.message);
+    return NextResponse.json({ message: "Non è stato possibile caricare la conversazione." }, { status: 500 });
+  }
+  if (!inquiry) {
+    return NextResponse.json({ message: "Richiesta non trovata." }, { status: 404 });
+  }
+
+  const replies: Array<{
+    id: string;
+    inquiry_id: string;
+    sender_email: string;
+    body: string;
+    direction: "inbound" | "outbound";
+    delivery_status: "pending" | "sent" | "failed" | "received";
+    created_at: string;
+    sent_at: string | null;
+    email_subject: string | null;
+  }> = [];
+  for (let offset = 0; ; offset += 1000) {
+    const { data, error } = await result.context.adminClient
+      .from("contact_inquiry_replies")
+      .select("id,inquiry_id,sender_email,body,direction,delivery_status,created_at,sent_at,email_subject")
+      .eq("inquiry_id", id)
+      .order("created_at", { ascending: true })
+      .range(offset, offset + 999);
+    if (error) {
+      console.error("Unable to refresh support conversation:", error.message);
+      return NextResponse.json({ message: "Non è stato possibile aggiornare la conversazione." }, { status: 500 });
+    }
+    replies.push(...(data ?? []));
+    if ((data ?? []).length < 1000) {
+      break;
+    }
+  }
+
+  return NextResponse.json({ replies, status: inquiry.status });
 }

@@ -9,9 +9,11 @@ type ReplyRow = {
   inquiry_id: string;
   sender_email: string;
   body: string;
-  delivery_status: "pending" | "sent" | "failed";
+  direction: "inbound" | "outbound";
+  delivery_status: "pending" | "sent" | "failed" | "received";
   created_at: string;
   sent_at: string | null;
+  email_subject: string | null;
 };
 type InquiryRow = {
   id: string;
@@ -103,7 +105,7 @@ export default async function InquiriesPage() {
     for (let offset = 0; ; offset += 1000) {
       const { data: replyPage, error } = await access.supabase
         .from("contact_inquiry_replies")
-        .select("id,inquiry_id,sender_email,body,delivery_status,created_at,sent_at")
+        .select("id,inquiry_id,sender_email,body,direction,delivery_status,created_at,sent_at,email_subject")
         .in("inquiry_id", inquiryBatch)
         .order("created_at", { ascending: true })
         .range(offset, offset + 999);

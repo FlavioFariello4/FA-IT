@@ -24,8 +24,10 @@ Il backend usa Supabase Auth, PostgreSQL e Storage privato. Per attivarlo:
    Applica poi `supabase/migrations/20261017140000_admin_workflows.sql` per aggiungere gli
    stati di candidature e richieste e `supabase/migrations/20261017160000_support_role.sql`
    per abilitare il ruolo Supporto e `supabase/migrations/20261017170000_support_inbox.sql`
-   per la inbox, le assegnazioni e le risposte email. Su un database già esistente, applica
-   solo le migration non ancora eseguite.
+   per la inbox, le assegnazioni e le risposte email. Infine applica
+   `supabase/migrations/20261017180000_support_conversation_threads.sql` per le conversazioni
+   email in entrata e in uscita. Su un database già esistente, applica solo le migration
+   non ancora eseguite.
 3. Copia `.env.example` in `.env.local` e inserisci URL e chiave anonima del progetto.
    La chiave `SUPABASE_SERVICE_ROLE_KEY` va mantenuta solo sul server: non anteporre
    `NEXT_PUBLIC_` e non inserirla mai nel browser o nel repository.
@@ -93,20 +95,30 @@ In **Area riservata** trovi le sezioni disponibili per il tuo ruolo:
   l'eliminazione richiede conferma e rimuove sia la scheda sia il CV privato.
 - **Richieste clienti:** assegnazione automatica a rotazione tra gli account con ruolo
   `support`; ricerca per nome, email e testo, filtro “Assegnate a me”, storico delle risposte
-  e invio dal backend tramite Resend. Tutti i support possono vedere e cercare tutte le
-  richieste, ma possono rispondere e cambiarne lo stato solo se assegnate a loro; l'admin
-  può gestirle tutte.
+  e conversazione email bidirezionale tramite Resend. Tutti i support possono vedere tutte
+  le conversazioni; possono rispondere e cambiare lo stato solo sulle richieste assegnate a
+  loro. L'admin può gestire tutto.
 
 Gli stati di candidature e richieste richiedono la migration
 `20261017140000_admin_workflows.sql`; assegnazione round-robin e storico risposte richiedono
-`20261017170000_support_inbox.sql`. Applica le migration mancanti in Supabase prima di
-usare la inbox. Per inviare risposte configura `RESEND_API_KEY` come variabile server-only
-su Render e, facoltativamente, `SUPPORT_EMAIL_FROM` (predefinito:
-`FA IT Support <support@fa-it.it>`). Il dominio mittente deve essere verificato in Resend;
-la verifica del dominio su Sender.net non verifica automaticamente il dominio in Resend.
-L'invio usa `support@fa-it.it` come indirizzo Reply-To: per ricevere le risposte dei clienti
-serve anche una casella reale attiva per quell'indirizzo. Le risposte in ingresso a quella
-casella non vengono importate nella inbox del sito.
+`20261017170000_support_inbox.sql`; le conversazioni bidirezionali richiedono anche
+`20261017180000_support_conversation_threads.sql`. Applica le migration mancanti in Supabase
+prima di usare la inbox. Configura su Render `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET` e
+`SUPPORT_EMAIL_REPLY_DOMAIN=inbound.fa-it.it`; `SUPPORT_EMAIL_FROM` è facoltativa (predefinito:
+`FA IT Support <support@fa-it.it>`). Verifica il dominio mittente e abilita la ricezione
+email in Resend; la verifica del dominio su Sender.net non verifica automaticamente il
+dominio in Resend.
+
+Per non toccare i record MX della posta esistente, configura in Resend un dominio di ricezione
+dedicato, `inbound.fa-it.it`, aggiungi in Register.it solo i record DNS/MX indicati da Resend
+per quel sottodominio e crea un webhook `email.received` verso
+`https://<dominio-del-sito>/api/webhooks/resend/inbound`. Copia il signing secret del webhook
+in `RESEND_WEBHOOK_SECRET`. Il mittente resta sempre `support@fa-it.it`; l'indirizzo Reply-To
+usa un alias univoco sul sottodominio per associare in modo affidabile ogni risposta alla
+conversazione corretta. Il mittente delle email in ingresso deve corrispondere all'indirizzo
+usato dal cliente nella richiesta. Le email già inviate prima di questa configurazione non
+hanno un alias di conversazione e le loro eventuali risposte non verranno associate
+automaticamente.
 
 ## SEO e pubblicazione
 

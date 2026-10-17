@@ -1892,24 +1892,38 @@ summary:focus-visible {
 }
 
 .inquiry-reply-history {
-  margin-top: 20px;
-  padding-top: 15px;
+  display: grid;
+  gap: 9px;
+  margin-top: 15px;
+}
+
+.inquiry-conversation {
+  margin-top: 17px;
   border-top: 1px solid var(--line);
 }
 
-.inquiry-reply-history > h3 {
-  margin: 0 0 10px;
-  color: #74786e;
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+.inquiry-conversation > summary {
+  padding: 14px 0 3px;
+  color: #536520;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  list-style-position: inside;
 }
 
 .inquiry-reply {
-  margin-top: 9px;
   padding: 13px 15px;
   border-left: 2px solid #b7c57e;
   background: #f0f0e9;
+}
+
+.inquiry-reply-inbound {
+  border-left-color: #8d946e;
+  background: #eeede6;
+}
+
+.inquiry-reply-outbound {
+  margin-left: clamp(0px, 5vw, 42px);
 }
 
 .inquiry-reply > div {
@@ -1947,12 +1961,10 @@ summary:focus-visible {
   border-top: 1px solid var(--line);
 }
 
-.inquiry-reply-composer summary {
-  color: #536520;
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 600;
-  list-style-position: inside;
+.inquiry-reply-composer > p {
+  margin: 0;
+  color: #74786e;
+  font-size: 10px;
 }
 
 .inquiry-reply-composer form {

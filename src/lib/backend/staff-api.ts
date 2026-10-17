@@ -18,8 +18,13 @@ type StaffApiResult =
 export async function getStaffApiContext(
   request: Request,
   allowedRoles: readonly StaffRole[],
+  options: { allowMissingOrigin?: boolean } = {},
 ): Promise<StaffApiResult> {
-  if (!hasSameOrigin(request)) {
+  const origin = request.headers.get("origin");
+  if (
+    (options.allowMissingOrigin && origin && !hasSameOrigin(request)) ||
+    (!options.allowMissingOrigin && !hasSameOrigin(request))
+  ) {
     return { response: invalidRequestOriginResponse() };
   }
 

@@ -1,18 +1,20 @@
 "use client";
 
-import { useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 
 type InquiryStatus = "new" | "in_progress" | "replied" | "archived";
-type ReplyStatus = "pending" | "sent" | "failed";
+type ReplyStatus = "pending" | "sent" | "failed" | "received";
 type InquiryReply = {
   id: string;
   inquiry_id: string;
   sender_email: string;
   body: string;
+  direction: "inbound" | "outbound";
   delivery_status: ReplyStatus;
   created_at: string;
   sent_at: string | null;
+  email_subject: string | null;
 };
 type Inquiry = {
   id: string;
@@ -50,7 +52,43 @@ export function AdminInquiries({
   const [search, setSearch] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
+  const [openConversationId, setOpenConversationId] = useState<string | null>(null);
   const replyAttempts = useRef(new Map<string, { requestId: string; body: string }>());
+
+  useEffect(() => {
+    if (!openConversationId) {
+      return;
+    }
+    let active = true;
+    const refreshConversation = async () => {
+      try {
+        const response = await fetch(`/api/admin/inquiries/${openConversationId}/replies`, {
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          throw new Error(`Conversation refresh failed (${response.status}).`);
+        }
+        const result = await response.json() as { replies?: InquiryReply[]; status?: InquiryStatus };
+        const refreshedReplies = result.replies;
+        if (!Array.isArray(refreshedReplies)) {
+          throw new Error("Conversation refresh returned an invalid response.");
+        }
+        if (active) {
+          setInquiries((current) => current.map((inquiry) => inquiry.id === openConversationId
+            ? { ...inquiry, replies: refreshedReplies, status: result.status ?? inquiry.status }
+            : inquiry));
+        }
+      } catch (error) {
+        console.error("Unable to refresh support conversation:", error);
+      }
+    };
+    void refreshConversation();
+    const interval = window.setInterval(() => void refreshConversation(), 15000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [openConversationId]);
 
   const visibleInquiries = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("it");
@@ -148,7 +186,9 @@ export function AdminInquiries({
         ? {
           ...item,
           status: result.status === "sent" ? "replied" : item.status,
-          replies: [...item.replies, sentReply],
+          replies: item.replies.some((reply) => reply.id === sentReply.id)
+            ? item.replies
+            : [...item.replies, sentReply],
         }
         : item));
       replyAttempts.current.delete(inquiry.id);
@@ -242,31 +282,55 @@ export function AdminInquiries({
                     </div>
                   )}
                 </div>
-                <p className="workflow-message">{inquiry.message}</p>
-                {inquiry.replies.length > 0 && (
-                  <div className="inquiry-reply-history" aria-label="Storico risposte">
-                    <h3>Conversazione</h3>
+                <details
+                  className="inquiry-conversation"
+                  onToggle={(event) => {
+                    const isOpen = event.currentTarget.open;
+                    setOpenConversationId((current) =>
+                      isOpen ? inquiry.id : current === inquiry.id ? null : current,
+                    );
+                  }}
+                >
+                  <summary>
+                    Conversazione · {inquiry.replies.length + 1} {inquiry.replies.length === 0 ? "messaggio" : "messaggi"}
+                  </summary>
+                  <div className="inquiry-reply-history" aria-label="Conversazione email">
+                    <article className="inquiry-reply inquiry-reply-inbound">
+                    <div>
+                      <span>{inquiry.name} · {inquiry.email}</span>
+                      <time dateTime={inquiry.created_at}>
+                        {new Date(inquiry.created_at).toLocaleString("it-IT")}
+                      </time>
+                    </div>
+                    <p>{inquiry.message}</p>
+                    </article>
                     {inquiry.replies.map((reply) => (
-                      <article className="inquiry-reply" key={reply.id}>
-                        <div>
-                          <span>{reply.sender_email || "FA IT Support"}</span>
-                          <time dateTime={reply.created_at}>
-                            {new Date(reply.created_at).toLocaleString("it-IT")}
-                          </time>
-                        </div>
-                        <p>{reply.body}</p>
-                        {reply.delivery_status !== "sent" && (
-                          <span className="workflow-danger">
-                            {reply.delivery_status === "pending" ? "Invio in corso" : "Invio non riuscito"}
-                          </span>
-                        )}
-                      </article>
+                    <article
+                      className={`inquiry-reply ${reply.direction === "inbound" ? "inquiry-reply-inbound" : "inquiry-reply-outbound"}`}
+                      key={reply.id}
+                    >
+                      <div>
+                        <span>
+                          {reply.direction === "inbound"
+                            ? reply.sender_email
+                            : `FA IT Support${reply.sender_email ? ` · operatore ${reply.sender_email}` : ""}`}
+                        </span>
+                        <time dateTime={reply.created_at}>
+                          {new Date(reply.created_at).toLocaleString("it-IT")}
+                        </time>
+                      </div>
+                      <p>{reply.body}</p>
+                      {reply.direction === "outbound" && reply.delivery_status !== "sent" && (
+                        <span className="workflow-danger">
+                          {reply.delivery_status === "pending" ? "Invio in corso" : "Invio non riuscito"}
+                        </span>
+                      )}
+                    </article>
                     ))}
                   </div>
-                )}
-                {canManage && (
-                  <details className="inquiry-reply-composer">
-                    <summary>Rispondi dal backend · support@fa-it.it</summary>
+                  {canManage && (
+                    <div className="inquiry-reply-composer">
+                    <p>La risposta verrà inviata al cliente da support@fa-it.it.</p>
                     <form onSubmit={(event) => void sendReply(event, inquiry)}>
                       <label>
                         Messaggio
@@ -276,8 +340,9 @@ export function AdminInquiries({
                         {busyId === inquiry.id ? "Invio…" : "Invia risposta ↗"}
                       </button>
                     </form>
-                  </details>
-                )}
+                    </div>
+                  )}
+                </details>
               </div>
             </article>
           );

@@ -52,6 +52,14 @@ export default function PrivacyPage() {
             i criteri di cancellazione e i recapiti per revocare il consenso devono essere
             definiti e indicati dal titolare prima di attivare la raccolta.
           </p>
+          <p>
+            Le successive comunicazioni relative a una richiesta possono essere scambiate
+            via email e conservate insieme alla conversazione nel database, per dare seguito
+            al contatto. Il personale di supporto autorizzato e gli amministratori possono
+            accedere alle conversazioni. Il servizio email usato per invio e ricezione è
+            Resend; titolare e responsabile devono verificare i relativi accordi, i trasferimenti
+            e i tempi di conservazione prima di attivare il flusso.
+          </p>
         </section>
         <section>
           <h2>CV e destinatari</h2>
