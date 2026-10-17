@@ -158,17 +158,58 @@ export function AdminInquiries({
     setBusyId(inquiry.id);
     setStatusMessage("");
 
+    let response: Response;
     try {
-      const response = await fetch(`/api/admin/inquiries/${inquiry.id}/replies`, {
+      response = await fetch(`/api/admin/inquiries/${inquiry.id}/replies`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Accept": "application/json", "Content-Type": "application/json" },
         body: JSON.stringify({ body, requestId }),
       });
-      const result = await response.json() as {
-        message?: string;
-        reply?: InquiryReply;
-        status?: string;
-      };
+    } catch (error) {
+      console.error("Support reply request could not reach the server:", error);
+      setStatusMessage("Il server non è raggiungibile: controlla la connessione e riprova. Se il problema continua, verifica il log del servizio su Render.");
+      setBusyId(null);
+      return;
+    }
+
+    let responseText: string;
+    try {
+      responseText = await response.text();
+    } catch (error) {
+      console.error("Unable to read support reply response:", error);
+      setStatusMessage(`Connessione interrotta dopo la risposta del server (HTTP ${response.status}). Verifica la conversazione prima di riprovare.`);
+      setBusyId(null);
+      return;
+    }
+
+    let responseBody: unknown;
+    try {
+      responseBody = JSON.parse(responseText);
+    } catch (error) {
+      console.error("Support reply endpoint returned invalid JSON:", {
+        status: response.status,
+        contentType: response.headers.get("content-type"),
+        error: error instanceof Error ? error.message : "Unknown response parsing error",
+      });
+      setStatusMessage(`Il server ha restituito una risposta non valida (HTTP ${response.status}). Controlla il log del servizio su Render.`);
+      setBusyId(null);
+      return;
+    }
+    if (!responseBody || typeof responseBody !== "object" || Array.isArray(responseBody)) {
+      console.error("Support reply endpoint returned an unexpected response shape.", {
+        status: response.status,
+        contentType: response.headers.get("content-type"),
+      });
+      setStatusMessage(`Il server ha restituito una risposta inattesa (HTTP ${response.status}). Controlla il log del servizio su Render.`);
+      setBusyId(null);
+      return;
+    }
+    const result = responseBody as {
+      message?: string;
+      reply?: InquiryReply;
+      status?: string;
+    };
+    try {
       setStatusMessage(result.message ?? "Non è stato possibile inviare la risposta.");
       if (result.status === "provider_rejected") {
         replyAttempts.current.delete(inquiry.id);
@@ -193,9 +234,6 @@ export function AdminInquiries({
         : item));
       replyAttempts.current.delete(inquiry.id);
       form.reset();
-    } catch (error) {
-      console.error("Unable to send support reply:", error instanceof Error ? error.message : "Unknown error");
-      setStatusMessage("Errore di rete durante l’invio. Controlla la connessione e riprova.");
     } finally {
       setBusyId(null);
     }
