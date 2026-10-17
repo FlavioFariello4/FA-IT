@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Studio e società trasparente",
@@ -35,6 +36,17 @@ export default function StudioPage() {
               e teniamo il dialogo aperto durante tutto il percorso.
             </p>
           </div>
+          <figure className="studio-image">
+            <div className="studio-image-frame">
+              <Image
+                alt="Persone che collaborano a un progetto davanti ai propri portatili"
+                fill
+                sizes="(max-width: 720px) 100vw, (max-width: 950px) 45vw, 28vw"
+                src="/images/team-collaboration.jpg"
+              />
+            </div>
+            <figcaption>Le idee migliori crescono nel confronto.</figcaption>
+          </figure>
         </div>
       </section>
       <section className="section-wrap values-grid">

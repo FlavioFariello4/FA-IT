@@ -411,8 +411,25 @@ summary:focus-visible {
     repeating-linear-gradient(90deg, transparent 0 27px, rgb(24 35 31 / 6%) 28px);
 }
 
+.hero-art-image {
+  object-fit: cover;
+  opacity: 0.58;
+  filter: grayscale(1) blur(1px) contrast(0.86);
+  mix-blend-mode: multiply;
+}
+
+.hero-art::before {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, rgb(215 241 107 / 38%), rgb(24 35 31 / 13%));
+  content: "";
+}
+
 .hero-art-grid {
   position: absolute;
+  z-index: 2;
   inset: 25px 13%;
   border: 1px solid rgb(24 35 31 / 16%);
   border-radius: 50%;
@@ -421,6 +438,7 @@ summary:focus-visible {
 
 .hero-orbit {
   position: absolute;
+  z-index: 2;
   top: 25%;
   left: 43%;
   width: 140px;
@@ -439,6 +457,7 @@ summary:focus-visible {
 
 .hero-stamp {
   position: absolute;
+  z-index: 3;
   top: 22%;
   left: 48%;
   display: flex;
@@ -465,6 +484,7 @@ summary:focus-visible {
 
 .hero-art-caption {
   position: absolute;
+  z-index: 3;
   right: 16%;
   bottom: 24px;
   font-size: 9px;
@@ -953,6 +973,73 @@ summary:focus-visible {
   padding-bottom: 95px;
 }
 
+.services-showcase {
+  padding: 72px 0;
+  background: #e9e9df;
+}
+
+.services-showcase-inner {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  align-items: center;
+  gap: 8%;
+}
+
+.services-showcase-copy .eyebrow {
+  margin-bottom: 20px;
+}
+
+.services-showcase-copy h2 {
+  margin: 0;
+  font-size: clamp(35px, 4.5vw, 58px);
+  font-weight: 500;
+  letter-spacing: -0.07em;
+  line-height: 1.02;
+}
+
+.services-showcase-copy > p:last-child {
+  max-width: 390px;
+  margin: 20px 0 0;
+  color: #62675e;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.services-showcase-visual {
+  position: relative;
+  min-height: 355px;
+  margin: 0;
+  overflow: hidden;
+  background: #aeb59b;
+}
+
+.services-showcase-visual img {
+  object-fit: cover;
+  object-position: center;
+  filter: grayscale(0.72) saturate(0.72) contrast(1.04);
+}
+
+.services-showcase-visual::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(125deg, rgb(215 241 107 / 13%), transparent 52%, rgb(19 28 24 / 28%));
+  content: "";
+  pointer-events: none;
+}
+
+.services-showcase-visual figcaption {
+  position: absolute;
+  z-index: 1;
+  right: 16px;
+  bottom: 16px;
+  padding: 9px 12px;
+  border: 1px solid rgb(255 255 255 / 45%);
+  background: rgb(19 28 24 / 74%);
+  color: #f5f4ef;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
 .service-detail {
   display: grid;
   grid-template-columns: 80px 1fr 40px;
@@ -1063,7 +1150,7 @@ summary:focus-visible {
 
 .studio-story-grid {
   display: grid;
-  grid-template-columns: 0.7fr 1fr;
+  grid-template-columns: 0.6fr 1.2fr 0.8fr;
   gap: 8%;
 }
 
@@ -1080,6 +1167,38 @@ summary:focus-visible {
   color: #5f655c;
   font-size: 14px;
   line-height: 1.85;
+}
+
+.studio-image {
+  align-self: center;
+  margin: 0;
+}
+
+.studio-image-frame {
+  position: relative;
+  min-height: 370px;
+  overflow: hidden;
+  background: #b9bcae;
+}
+
+.studio-image-frame img {
+  object-fit: cover;
+  object-position: center 45%;
+  filter: grayscale(0.7) saturate(0.7) contrast(1.05);
+}
+
+.studio-image-frame::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(215 241 107 / 9%), transparent 45%, rgb(19 28 24 / 20%));
+  content: "";
+  pointer-events: none;
+}
+
+.studio-image figcaption {
+  margin-top: 11px;
+  color: #62675e;
+  font-size: 10px;
 }
 
 .values-grid {
@@ -2371,6 +2490,20 @@ summary:focus-visible {
     width: 49%;
   }
 
+  .studio-story-grid {
+    grid-template-columns: 0.7fr 1.3fr;
+    gap: 28px;
+  }
+
+  .studio-image {
+    grid-column: 2;
+    width: min(100%, 390px);
+  }
+
+  .studio-image-frame {
+    min-height: 330px;
+  }
+
   .hero-bottom {
     max-width: 740px;
   }
@@ -2479,6 +2612,23 @@ summary:focus-visible {
     width: 88%;
     height: 230px;
     transform: rotate(-8deg) translate3d(0, var(--hero-scroll-shift, 0px), 0);
+  }
+
+  .services-showcase {
+    padding: 48px 0;
+  }
+
+  .services-showcase-inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .services-showcase-copy h2 {
+    font-size: 42px;
+  }
+
+  .services-showcase-visual {
+    min-height: 245px;
   }
 
   .hero-orbit {
@@ -2716,6 +2866,16 @@ summary:focus-visible {
   .studio-story-grid {
     grid-template-columns: 1fr;
     gap: 20px;
+  }
+
+  .studio-image {
+    grid-column: auto;
+    width: 100%;
+    margin-top: 5px;
+  }
+
+  .studio-image-frame {
+    min-height: 300px;
   }
 
   .studio-story-grid h2 {

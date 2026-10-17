@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Servizi digitali",
@@ -50,6 +51,27 @@ export default function ServicesPage() {
           Ogni progetto parte da una domanda diversa. Ascoltiamo, mettiamo a fuoco
           le priorità e scegliamo insieme il modo più semplice per arrivare al risultato.
         </p>
+      </section>
+      <section aria-label="I nostri servizi digitali" className="services-showcase">
+        <div className="section-wrap services-showcase-inner">
+          <div className="services-showcase-copy">
+            <p className="eyebrow">Dal concept al prodotto</p>
+            <h2>Soluzioni digitali<br /><span className="serif-accent">pensate per le persone.</span></h2>
+            <p>
+              Interfacce, strumenti cloud e applicazioni progettati per rendere
+              più semplice il lavoro di ogni giorno.
+            </p>
+          </div>
+          <figure className="services-showcase-visual">
+            <Image
+              alt="Un laptop mostra una dashboard digitale con grafici e dati"
+              fill
+              sizes="(max-width: 720px) 100vw, 55vw"
+              src="/images/digital-product.jpg"
+            />
+            <figcaption>WEB · CLOUD · E-COMMERCE</figcaption>
+          </figure>
+        </div>
       </section>
       <section className="section-wrap service-detail-list">
         {services.map((service) => (

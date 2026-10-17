@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { siteConfig } from "@/lib/site-config";
 
 const services = [
@@ -62,6 +63,14 @@ export default function Home() {
           </Link>
         </div>
         <div aria-hidden="true" className="hero-art">
+          <Image
+            alt=""
+            className="hero-art-image"
+            fill
+            priority
+            sizes="(max-width: 720px) 90vw, 45vw"
+            src="/images/digital-workspace.jpg"
+          />
           <div className="hero-art-grid" />
           <div className="hero-orbit orbit-one" />
           <div className="hero-orbit orbit-two" />
