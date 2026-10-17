@@ -26,7 +26,7 @@ export async function proxy(request: NextRequest) {
   });
 
   const { error } = await supabase.auth.getUser();
-  if (error) {
+  if (error && error.name !== "AuthSessionMissingError") {
     console.error("Unable to refresh Supabase session:", error.message);
   }
 
