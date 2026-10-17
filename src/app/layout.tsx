@@ -58,8 +58,9 @@ export default function RootLayout({
         <a className="skip-link" href="#contenuto">
           Salta al contenuto
         </a>
-        <SiteChrome />
+        <SiteChrome position="header" />
         <main id="contenuto">{children}</main>
+        <SiteChrome position="footer" />
         <CookieConsent />
         <IntroLoader />
         <MotionEnhancements />
