@@ -1505,6 +1505,104 @@ summary:focus-visible {
   margin-top: 23px;
 }
 
+.admin-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 15px;
+  margin-top: 48px;
+}
+
+.admin-card {
+  position: relative;
+  display: flex;
+  min-height: 205px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 20px;
+  overflow: hidden;
+  border: 1px solid #d4d5ca;
+  border-radius: 5px;
+  background: #eeede6;
+  transition: transform 220ms ease, background 220ms ease, border-color 220ms ease;
+}
+
+.admin-card:hover {
+  transform: translateY(-4px);
+  border-color: #b8c582;
+  background: #f0f1e7;
+}
+
+.admin-card-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--acid);
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.admin-card-copy > span {
+  color: #74786e;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.admin-card-copy h2 {
+  margin: 7px 0 4px;
+  font-size: clamp(20px, 2vw, 27px);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+}
+
+.admin-card-copy p {
+  margin: 0;
+  color: #62675e;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.admin-card > b {
+  position: absolute;
+  right: 21px;
+  bottom: 20px;
+  color: #607221;
+  font-size: 19px;
+  font-weight: 400;
+  transition: transform 180ms ease;
+}
+
+.admin-card:hover > b {
+  transform: translate(3px, -3px);
+}
+
+.admin-role-note {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.admin-role-note > span {
+  margin-right: 5px;
+}
+
+.admin-role-note > b {
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  background: #faf9f5;
+  color: #555c4d;
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
 .admin-intro,
 .admin-role-note {
   color: #62675e;
@@ -1536,7 +1634,10 @@ summary:focus-visible {
 }
 
 .admin-record-list {
-  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 12px;
 }
 
 .admin-list-help {
@@ -1547,7 +1648,13 @@ summary:focus-visible {
 }
 
 .admin-record-list > h2 {
-  padding: 16px 0;
+  grid-column: 1 / -1;
+  padding: 0 0 5px;
+}
+
+.admin-record-list > .admin-list-help,
+.admin-record-list > p {
+  grid-column: 1 / -1;
 }
 
 .admin-record {
@@ -1634,12 +1741,20 @@ summary:focus-visible {
 }
 
 .workflow-list {
-  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 14px;
 }
 
 .workflow-card {
-  padding: 23px 0;
-  border-bottom: 1px solid var(--line);
+  min-width: 0;
+  height: 100%;
+  padding: 18px;
+  border: 1px solid #d9d9cf;
+  border-radius: 5px;
+  background: #faf9f5;
+  box-shadow: 0 5px 18px rgb(24 35 31 / 3%);
 }
 
 .workflow-card-main {
@@ -1650,8 +1765,8 @@ summary:focus-visible {
 .workflow-card-heading {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 25px;
+  flex-direction: column;
+  gap: 13px;
 }
 
 .workflow-card h2,
@@ -1690,7 +1805,8 @@ summary:focus-visible {
 
 .workflow-status {
   display: flex;
-  min-width: 155px;
+  width: 100%;
+  min-width: 0;
   flex-direction: column;
   gap: 6px;
   color: #62675e;
@@ -1746,6 +1862,14 @@ summary:focus-visible {
   font-size: 11px;
 }
 
+.workflow-list > .workflow-empty {
+  grid-column: 1 / -1;
+  padding: 30px;
+  border: 1px dashed #c7c9bd;
+  border-radius: 5px;
+  text-align: center;
+}
+
 .workflow-status-message {
   min-height: 22px;
   margin-top: 15px;
@@ -1771,6 +1895,118 @@ summary:focus-visible {
   align-items: flex-start;
   flex-direction: column;
   gap: 14px;
+  min-width: 0;
+  height: 100%;
+  padding: 17px;
+  border: 1px solid #d9d9cf;
+  border-radius: 5px;
+  background: #faf9f5;
+  box-shadow: 0 5px 18px rgb(24 35 31 / 3%);
+}
+
+.project-admin-record h3 {
+  overflow-wrap: anywhere;
+}
+
+.admin-users-section {
+  min-width: 0;
+}
+
+.admin-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-section-heading .eyebrow {
+  margin: 0 0 6px;
+}
+
+.admin-section-heading h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+.admin-section-heading > span {
+  color: #71766c;
+  font-size: 10px;
+}
+
+.admin-user-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-user-card {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid #d9d9cf;
+  border-radius: 5px;
+  background: #faf9f5;
+}
+
+.admin-user-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.admin-user-avatar {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--acid);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-user-heading h3 {
+  margin: 2px 0 5px;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.admin-user-heading p {
+  margin: 0;
+  color: #62675e;
+  font-size: 10px;
+  text-transform: capitalize;
+}
+
+.admin-user-permissions {
+  margin-top: 13px;
+  padding-top: 11px;
+  border-top: 1px solid var(--line);
+}
+
+.admin-user-permissions summary {
+  color: #536520;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  list-style-position: inside;
+}
+
+.admin-user-permissions .role-toggle-list {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+}
+
+.admin-user-permissions .consent-check {
+  align-items: flex-start;
+  font-size: 10px;
 }
 
 .project-actions {
@@ -2120,6 +2356,10 @@ summary:focus-visible {
 
   .desktop-nav a {
     font-size: 11px;
+  }
+
+  .admin-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .hero {
@@ -2560,6 +2800,31 @@ summary:focus-visible {
     grid-template-columns: 1fr;
     gap: 50px;
     margin-top: 37px;
+  }
+
+  .workflow-list,
+  .admin-user-grid,
+  .admin-record-list {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-card-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 30px;
+  }
+
+  .admin-card {
+    min-height: 176px;
+    padding: 15px;
+  }
+
+  .admin-card-copy h2 {
+    font-size: 21px;
+  }
+
+  .workflow-card {
+    padding: 15px;
   }
 
   .admin-record {

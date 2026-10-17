@@ -78,28 +78,36 @@ export function AdminUsers() {
         </label>
         <button className="button button-dark" type="submit">Invia invito ↗</button>
       </form>
-      <div className="admin-record-list admin-users-list">
-        <h2>Account e permessi</h2>
+      <section className="admin-users-section">
+        <div className="admin-section-heading"><div><p className="eyebrow">ACCESSI</p><h2>Team</h2></div><span>{users.length} account</span></div>
         {loading && <p>Caricamento…</p>}
         {!loading && users.length === 0 && <p>Nessun account trovato.</p>}
-        {users.map((user) => (
-          <article className="admin-user-record" key={user.id}>
-            <div><h3>{user.email}</h3><p>{user.roles.length ? `Ruoli: ${user.roles.join(", ")}` : "Nessun ruolo assegnato"}</p></div>
-            <div className="role-toggle-list">
-              {roles.map((role) => (
-                <label className="consent-check" key={role.value}>
-                  <input
-                    checked={user.roles.includes(role.value)}
-                    onChange={() => void toggleRole(user, role.value)}
-                    type="checkbox"
-                  />
-                  <span>{role.label}</span>
-                </label>
-              ))}
-            </div>
-          </article>
-        ))}
-      </div>
+        <div className="admin-user-grid">
+          {users.map((user) => (
+            <article className="admin-user-card" key={user.id}>
+              <div className="admin-user-heading">
+                <span aria-hidden="true" className="admin-user-avatar">{user.email.slice(0, 1).toUpperCase()}</span>
+                <div><h3>{user.email}</h3><p>{user.roles.length ? user.roles.map((role) => role.replace("_", " ")).join(" · ") : "Nessun ruolo"}</p></div>
+              </div>
+              <details className="admin-user-permissions">
+                <summary>Gestisci permessi</summary>
+                <div className="role-toggle-list">
+                  {roles.map((role) => (
+                    <label className="consent-check" key={role.value}>
+                      <input
+                        checked={user.roles.includes(role.value)}
+                        onChange={() => void toggleRole(user, role.value)}
+                        type="checkbox"
+                      />
+                      <span>{role.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </details>
+            </article>
+          ))}
+        </div>
+      </section>
       <p aria-live="polite" className="form-status" role="status">{status}</p>
     </>
   );

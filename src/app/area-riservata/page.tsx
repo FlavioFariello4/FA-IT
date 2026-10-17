@@ -74,40 +74,50 @@ export default async function AdminHomePage() {
     <section className="section-wrap admin-page">
       <div className="admin-page-heading">
         <div>
-          <p className="eyebrow">Area riservata · accesso verificato</p>
+          <p className="eyebrow">Dashboard · FA IT</p>
           <h1>Ciao, <span className="serif-accent">{user.email?.split("@")[0] ?? "team"}.</span></h1>
-          <p className="inner-lede">Scegli un’area qui sotto. Ogni sezione mostra solo gli strumenti consentiti al tuo ruolo.</p>
+          <p className="inner-lede">Cosa vuoi gestire oggi?</p>
         </div>
         <SignOutButton />
       </div>
-      <div className="admin-card-grid">
+      <div aria-label="Aree di gestione" className="admin-card-grid">
         {canManagePortfolio && (
           <Link className="admin-card" href="/area-riservata/progetti">
-            <span>01 · Portfolio</span>            <h2>Progetti</h2><p>Aggiungi lavori, modifica i dettagli, pubblica, nascondi o elimina un progetto.</p><b>Gestisci progetti ↗</b>
+            <span className="admin-card-icon" aria-hidden="true">01</span>
+            <div className="admin-card-copy"><span>PORTFOLIO</span><h2>Progetti</h2><p>Pubblica e modifica i tuoi lavori.</p></div>
+            <b aria-hidden="true">↗</b>
           </Link>
         )}
         {canManageHr && (
           <>
             <Link className="admin-card" href="/area-riservata/posizioni">
-              <span>02 · Selezione</span>              <h2>Offerte di lavoro</h2><p>Crea e aggiorna annunci, pubblicali o lasciali in bozza.</p><b>Gestisci offerte ↗</b>
+              <span className="admin-card-icon" aria-hidden="true">02</span>
+              <div className="admin-card-copy"><span>TEAM</span><h2>Offerte</h2><p>Annunci e posizioni aperte.</p></div>
+              <b aria-hidden="true">↗</b>
             </Link>
             <Link className="admin-card" href="/area-riservata/candidature">
-              <span>03 · Selezione</span>              <h2>Candidature</h2><p>Consulta i CV e segui ogni persona: nuova, valutazione, colloquio, selezionata o scartata.</p><b>Apri selezione ↗</b>
+              <span className="admin-card-icon" aria-hidden="true">03</span>
+              <div className="admin-card-copy"><span>TEAM</span><h2>Candidature</h2><p>Valuta CV e aggiorna le fasi.</p></div>
+              <b aria-hidden="true">↗</b>
             </Link>
           </>
         )}
         {isAdmin && (
           <>
             <Link className="admin-card" href="/area-riservata/richieste">
-              <span>04 · Clienti</span>              <h2>Richieste clienti</h2><p>Leggi i messaggi, rispondi via email e segna le richieste già gestite.</p><b>Apri richieste ↗</b>
+              <span className="admin-card-icon" aria-hidden="true">04</span>
+              <div className="admin-card-copy"><span>CLIENTI</span><h2>Richieste</h2><p>Messaggi e follow-up.</p></div>
+              <b aria-hidden="true">↗</b>
             </Link>
             <Link className="admin-card" href="/area-riservata/utenti">
-              <span>05 · Accessi</span>              <h2>Team e permessi</h2><p>Invita collaboratori e scegli cosa può gestire ciascuno.</p><b>Gestisci accessi ↗</b>
+              <span className="admin-card-icon" aria-hidden="true">05</span>
+              <div className="admin-card-copy"><span>IMPOSTAZIONI</span><h2>Team e accessi</h2><p>Inviti e permessi.</p></div>
+              <b aria-hidden="true">↗</b>
             </Link>
           </>
         )}
       </div>
-      <p className="admin-role-note">Ruoli: {Array.from(roles).join(", ")}</p>
+      <div className="admin-role-note"><span>Il tuo accesso</span>{Array.from(roles).map((role) => <b key={role}>{role.replace("_", " ")}</b>)}</div>
     </section>
   );
 }
