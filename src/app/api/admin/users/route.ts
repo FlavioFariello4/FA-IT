@@ -128,8 +128,8 @@ export async function POST(request: Request) {
     email,
     options: { redirectTo: inviteRedirectTo },
   });
-  if (inviteError || !data.user || !data.properties.action_link) {
-    console.error("Unable to generate staff invitation:", inviteError?.message ?? "Missing invite action link.");
+  if (inviteError || !data.user || !data.properties.hashed_token) {
+    console.error("Unable to generate staff invitation:", inviteError?.message ?? "Missing invite token hash.");
     return NextResponse.json(
       { message: "Non è stato possibile generare l’invito. Verifica che l’email non abbia già un account." },
       { status: 502 },
@@ -156,7 +156,11 @@ export async function POST(request: Request) {
   }
 
   const safeEmail = escapeHtml(email);
-  const safeActionLink = escapeHtml(data.properties.action_link);
+  const inviteUrl = new URL("/auth/callback", siteOrigin);
+  inviteUrl.searchParams.set("token_hash", data.properties.hashed_token);
+  inviteUrl.searchParams.set("type", "invite");
+  inviteUrl.searchParams.set("next", "/accesso/imposta-password");
+  const safeInviteUrl = escapeHtml(inviteUrl.toString());
   let emailResponse: Response;
   try {
     emailResponse = await fetch("https://api.resend.com/emails", {
@@ -176,7 +180,7 @@ export async function POST(request: Request) {
           "",
           "sei stato invitato a collaborare con FA IT.",
           "Per attivare il tuo account e impostare la password, apri questo link:",
-          data.properties.action_link,
+          inviteUrl.toString(),
           "",
           "Se non ti aspettavi questo invito, puoi ignorare questa email.",
           "",
@@ -189,9 +193,9 @@ export async function POST(request: Request) {
           "<p style=\"font-size:13px;font-weight:700;letter-spacing:.12em\">FA IT</p>",
           "<h1 style=\"font-size:28px;font-weight:500\">Benvenuto nel team</h1>",
           `<p>Sei stato invitato a collaborare con FA IT usando <strong>${safeEmail}</strong>.</p>`,
-          `<p style=\"margin:28px 0\"><a href=\"${safeActionLink}\" style=\"display:inline-block;background:#d7f16b;padding:14px 20px;color:#202822;text-decoration:none;font-weight:700\">Attiva l’account e imposta la password</a></p>`,
+          `<p style=\"margin:28px 0\"><a href=\"${safeInviteUrl}\" style=\"display:inline-block;background:#d7f16b;padding:14px 20px;color:#202822;text-decoration:none;font-weight:700\">Attiva l’account e imposta la password</a></p>`,
           "<p>Se il pulsante non funziona, copia questo link nel browser:</p>",
-          `<p style=\"overflow-wrap:anywhere;font-size:12px\"><a href=\"${safeActionLink}\">${safeActionLink}</a></p>`,
+          `<p style=\"overflow-wrap:anywhere;font-size:12px\"><a href=\"${safeInviteUrl}\">${safeInviteUrl}</a></p>`,
           "<p style=\"margin-top:32px;color:#62675e;font-size:13px\">Se non ti aspettavi questo invito, puoi ignorare questa email.</p>",
           "<p style=\"margin-top:28px;font-size:13px\">FA IT · <a href=\"https://www.fa-it.it\">www.fa-it.it</a></p>",
           "</main></body></html>",

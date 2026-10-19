@@ -54,6 +54,9 @@ on conflict do nothing;
 Disabilita la registrazione pubblica di account in Supabase: il team si gestisce tramite
 invito. Attiva MFA per gli account privilegiati. Gli inviti vengono creati da Supabase Auth
 e spediti da Resend con `RESEND_API_KEY` e il mittente verificato `SUPPORT_EMAIL_FROM`.
+Per il flusso custom, il link Resend porta alla callback del sito con il token hash di
+Supabase; la callback lo verifica e crea la sessione prima di mostrare la pagina di
+impostazione password.
 
 ### Template email Supabase
 

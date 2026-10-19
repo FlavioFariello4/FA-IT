@@ -39,15 +39,27 @@ export async function GET(request: NextRequest) {
       ? candidateNextUrl
       : new URL("/area-riservata", siteOrigin);
   const code = url.searchParams.get("code");
+  const tokenHash = url.searchParams.get("token_hash");
+  const tokenType = url.searchParams.get("type");
   const supabase = await createSupabaseServerClient();
 
-  if (!supabase || !code) {
+  if (!supabase) {
     return NextResponse.redirect(new URL("/accesso?errore=invito", siteOrigin));
   }
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
-  if (error) {
-    console.error("Unable to complete the staff invitation:", error.message);
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      console.error("Unable to complete the staff invitation:", error.message);
+      return NextResponse.redirect(new URL("/accesso?errore=invito", siteOrigin));
+    }
+  } else if (tokenHash && tokenType === "invite") {
+    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "invite" });
+    if (error) {
+      console.error("Unable to verify the staff invitation token:", error.message);
+      return NextResponse.redirect(new URL("/accesso?errore=invito", siteOrigin));
+    }
+  } else {
     return NextResponse.redirect(new URL("/accesso?errore=invito", siteOrigin));
   }
 
