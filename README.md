@@ -26,8 +26,9 @@ Il backend usa Supabase Auth, PostgreSQL e Storage privato. Per attivarlo:
    per abilitare il ruolo Supporto e `supabase/migrations/20261017170000_support_inbox.sql`
    per la inbox, le assegnazioni e le risposte email. Infine applica
    `supabase/migrations/20261017180000_support_conversation_threads.sql` per le conversazioni
-   email in entrata e in uscita. Su un database già esistente, applica solo le migration
-   non ancora eseguite.
+   email in entrata e in uscita, poi `supabase/migrations/20261019100000_portfolio_project_images.sql`
+   per la galleria foto del portfolio. Su un database già esistente, applica solo le
+   migration non ancora eseguite.
 3. Copia `.env.example` in `.env.local` e inserisci URL e chiave anonima del progetto.
    La chiave `SUPABASE_SERVICE_ROLE_KEY` va mantenuta solo sul server: non anteporre
    `NEXT_PUBLIC_` e non inserirla mai nel browser o nel repository.
@@ -89,7 +90,9 @@ separato per autenticazione, database e CV.
 
 In **Area riservata** trovi le sezioni disponibili per il tuo ruolo:
 
-- **Portfolio:** crea, modifica, pubblica, nascondi o elimina progetti.
+- **Portfolio:** crea, modifica, pubblica, nascondi o elimina progetti; aggiunge fino a
+  12 immagini JPG, PNG, WebP o AVIF (massimo 10 MB ciascuna) e può rimuoverle. Le immagini
+  sono salvate in un bucket privato e mostrate solo per i progetti pubblicati.
 - **Offerte di lavoro:** crea e modifica gli annunci, pubblicali o lasciali in bozza.
 - **Candidature:** aggiorna la fase (nuova, in valutazione, colloquio, scartata, selezionata);
   l'eliminazione richiede conferma e rimuove sia la scheda sia il CV privato.
