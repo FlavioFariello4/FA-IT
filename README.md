@@ -18,8 +18,8 @@ configurazione del backend.
 
 Il backend usa Supabase Auth, PostgreSQL e Storage privato. Per attivarlo:
 
-1. Crea un progetto Supabase e configura l'autenticazione email/password e l'invio delle
-   email di invito con SMTP.
+1. Crea un progetto Supabase, configura l'autenticazione email/password e verifica in Resend
+   il dominio mittente usato per gli inviti del team.
 2. Applica `supabase/migrations/20261017000000_initial_schema.sql` al database.
    Applica poi `supabase/migrations/20261017140000_admin_workflows.sql` per aggiungere gli
    stati di candidature e richieste e `supabase/migrations/20261017160000_support_role.sql`
@@ -32,8 +32,9 @@ Il backend usa Supabase Auth, PostgreSQL e Storage privato. Per attivarlo:
 3. Copia `.env.example` in `.env.local` e inserisci URL e chiave anonima del progetto.
    La chiave `SUPABASE_SERVICE_ROLE_KEY` va mantenuta solo sul server: non anteporre
    `NEXT_PUBLIC_` e non inserirla mai nel browser o nel repository.
-4. Imposta il dominio reale come `NEXT_PUBLIC_SITE_URL` e abilita quel dominio negli URL
-   consentiti di Supabase Auth.
+4. Imposta il dominio canonico del sito come `NEXT_PUBLIC_SITE_URL` e `SITE_URL`
+   (ad esempio `https://www.fa-it.it`). In Supabase Auth imposta lo stesso **Site URL** e
+   aggiungi `https://www.fa-it.it/**` agli URL di redirect consentiti.
 5. Assegna il ruolo iniziale `admin` al tuo utente autenticato dal pannello SQL di
    Supabase. Non esiste un account amministratore predefinito.
 6. Completa l'informativa, i recapiti del titolare e i tempi di conservazione prima di
@@ -51,7 +52,8 @@ on conflict do nothing;
 ```
 
 Disabilita la registrazione pubblica di account in Supabase: il team si gestisce tramite
-invito. Attiva MFA per gli account privilegiati e configura SMTP per gli inviti.
+invito. Attiva MFA per gli account privilegiati. Gli inviti vengono creati da Supabase Auth
+e spediti da Resend con `RESEND_API_KEY` e il mittente verificato `SUPPORT_EMAIL_FROM`.
 
 ### Ruoli predefiniti
 
@@ -156,8 +158,20 @@ Per Render puoi collegare il repository e creare un **Web Service**:
   e non come build args. Render assegna `PORT`; il container ascolta su `0.0.0.0`.
 
 Collega il dominio nel pannello Render e configura lo stesso URL in `NEXT_PUBLIC_SITE_URL` e
-negli URL consentiti di Supabase Auth. I dati persistenti risiedono su Supabase, non nel
+`SITE_URL`, oltre ad aggiungerlo agli URL consentiti di Supabase Auth. `SITE_URL` è letto
+server-side al momento dell’invito; `NEXT_PUBLIC_SITE_URL` va impostato anche al build, perché
+Next.js può incorporarlo nei bundle. Per gli inviti si usa prima `SITE_URL`, poi l'origine
+validata della richiesta e infine `NEXT_PUBLIC_SITE_URL`; un eventuale hostname
+`*.onrender.com` non viene usato come destinazione. Se Resend non restituisce un esito
+verificabile, l'account invitato viene mantenuto per evitare di invalidare un link che
+potrebbe essere già stato spedito: controlla il log Resend prima di intervenire. I dati
+persistenti risiedono su Supabase, non nel
 filesystem effimero del servizio web.
+
+Gli inviti del team sono inviati tramite Resend dal dominio verificato. Per ridurre la
+possibilità che finiscano nello spam, verifica su Resend la firma del dominio mittente e
+pubblica correttamente i record SPF, DKIM e DMARC; la consegna e la reputazione dipendono
+anche dal provider del destinatario e non possono essere garantite solo dal codice.
 
 ## Deploy Docker locale
 
