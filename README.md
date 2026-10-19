@@ -55,6 +55,28 @@ Disabilita la registrazione pubblica di account in Supabase: il team si gestisce
 invito. Attiva MFA per gli account privilegiati. Gli inviti vengono creati da Supabase Auth
 e spediti da Resend con `RESEND_API_KEY` e il mittente verificato `SUPPORT_EMAIL_FROM`.
 
+### Template email Supabase
+
+Sono disponibili template HTML responsive, con colori e stile del sito, in
+[`supabase/templates/`](./supabase/templates/). Nel pannello Supabase apri
+**Authentication → Email Templates**, seleziona il tipo di email, incolla il contenuto del
+file corrispondente in **Message Body** e imposta l'oggetto:
+
+| Tipo in Supabase | File | Oggetto consigliato |
+| --- | --- | --- |
+| Confirm signup | `confirm-signup.html` | Conferma il tuo indirizzo email · FA IT |
+| Invite user | `invite-user.html` | Hai ricevuto un invito nel team FA IT |
+| Magic Link | `magic-link.html` | Il tuo link di accesso a FA IT |
+| Change Email Address | `change-email-address.html` | Conferma il nuovo indirizzo email · FA IT |
+| Reset Password | `reset-password.html` | Reimposta la password · FA IT |
+| Reauthentication | `reauthentication.html` | Il tuo codice di verifica · FA IT |
+
+I template usano le variabili standard di Supabase (`{{ .ConfirmationURL }}`,
+`{{ .SiteURL }}` e, per la riautenticazione, `{{ .Token }}`): non sostituirle con URL o
+codici statici. Nota: al momento gli inviti del team vengono consegnati direttamente tramite
+Resend dall'endpoint applicativo, quindi il template **Invite user** non viene usato per
+quegli inviti; è pronto per l'eventuale flusso in cui Supabase invia direttamente le email.
+
 ### Ruoli predefiniti
 
 - `admin`: gestione completa, richieste clienti, accessi e tutti i contenuti.
